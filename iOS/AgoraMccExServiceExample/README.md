@@ -8,8 +8,6 @@
 - [安装](#安装)
 - [使用](#使用)
 - [功能](#功能)
-- [代码说明](#代码说明)
-- [授权](#授权)
 
 ## 先决条件
 
@@ -30,7 +28,7 @@
 1. 克隆此存储库到本地：
 
     ```bash
-    git clone https://github.com/yourusername/MCCManagerDemo.git
+    git clone https://github.com/yourusername/AgoraMccExServiceExample.git
     cd AgoraMccExServiceExample
     ```
 
