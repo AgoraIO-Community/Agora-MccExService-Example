@@ -1,0 +1,6 @@
+framework module AgoraMccExService {
+  umbrella header "AgoraMccExService-umbrella.h"
+
+  export *
+  module * { export * }
+}
