@@ -79,7 +79,7 @@ android {
 }
 
 dependencies {
-    implementation("io.github.winskyan:Agora-MccExService:2.2.0.131-alpha.2") {
+    implementation("io.github.winskyan:Agora-MccExService:2.2.0.131-alpha.3") {
         exclude(group: "io.agora.rtc", module: "agora-special-full")
     }
 
