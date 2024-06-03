@@ -1,0 +1,10 @@
+<resources>
+    <string name="application_name" translatable="false">MccExServiceExample</string>
+    <string name="join" translatable="false">加入房间</string>
+    <string name="leave" translatable="false">离开房间</string>
+    <string name="play" translatable="false">播放</string>
+    <string name="pause" translatable="false">暂停</string>
+    <string name="stop" translatable="false">停止</string>
+    <string name="play_original" translatable="false">原唱</string>
+    <string name="play_accompany" translatable="false">伴唱</string>
+</resources>

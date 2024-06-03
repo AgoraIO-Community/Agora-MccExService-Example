@@ -1,0 +1,116 @@
+plugins {
+    id 'com.android.application'
+    id 'kotlin-parcelize'
+    id 'org.jetbrains.kotlin.android'
+}
+// 导入 local.properties 文件
+Properties properties = new Properties()
+InputStream inputStream = project.rootProject.file('local.properties').newDataInputStream()
+properties.load(inputStream)
+
+android {
+    namespace demoNamespace.toString()
+    compileSdk appCompileSdkVersion.toInteger()
+
+    defaultConfig {
+        applicationId demoApplicationId.toString()
+        minSdk appMinSdkVersion.toInteger()
+        targetSdk appTargetSkdVersion.toInteger()
+        versionCode demoVersionCode.toInteger()
+        versionName demoVersionName.toString()
+
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField("String", "APP_ID", "\"${properties.getProperty("APP_ID", "")}\"")
+        buildConfigField("String", "APP_CERTIFICATE", "\"${properties.getProperty("APP_CERTIFICATE", "")}\"")
+
+        buildConfigField("String", "YSD_APP_ID", "\"${properties.getProperty("YSD_APP_ID", "")}\"")
+        buildConfigField("String", "YSD_APP_KEY", "\"${properties.getProperty("YSD_APP_KEY", "")}\"")
+        buildConfigField("String", "YSD_APP_TOKEN", "\"${properties.getProperty("YSD_APP_TOKEN", "")}\"")
+        buildConfigField("String", "YSD_APP_UID", "\"${properties.getProperty("YSD_APP_UID", "")}\"")
+
+        ndk {
+            abiFilters 'arm64-v8a'
+        }
+    }
+
+    signingConfigs {
+        release {
+            keyAlias "key0"
+            keyPassword "123456"
+            storeFile file('./keystore/testkey.jks')
+            storePassword "123456"
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled isMinifyEnabled.toBoolean()
+            shrinkResources isMinifyEnabled.toBoolean()
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    viewBinding {
+        enabled = true
+    }
+
+    lintOptions {
+        checkReleaseBuilds false
+        abortOnError false
+    }
+    buildFeatures {
+        buildConfig true
+    }
+    applicationVariants.configureEach { variant ->
+        variant.outputs.configureEach {
+            outputFileName = "${project.rootProject.name}-${versionName}-${variant.buildType.name}-${releaseTime()}.apk"
+        }
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+}
+
+dependencies {
+    implementation("io.github.winskyan:Agora-MccExService:2.2.0.131-alpha.2") {
+        exclude(group: "io.agora.rtc", module: "agora-special-full")
+    }
+
+
+    implementation 'androidx.appcompat:appcompat:1.4.1'
+    implementation 'com.google.android.material:material:1.8.0'
+    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
+
+    testImplementation("junit:junit:4.13.2")
+    androidTestImplementation("androidx.test.ext:junit:1.1.5")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+
+    implementation(platform("org.jetbrains.kotlin:kotlin-bom:${kotlinVersion.toString()}"))
+    implementation("org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion.toString()}")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.1")
+    implementation("androidx.fragment:fragment-ktx:1.5.6")
+    implementation("androidx.activity:activity-ktx:1.9.0")
+
+    implementation("com.google.code.gson:gson:2.10.1")
+    implementation("commons-codec:commons-codec:1.16.0")
+    implementation("pub.devrel:easypermissions:3.0.0")
+    implementation("com.github.li-xiaojun:XPopup:2.7.5")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+
+    implementation("io.agora:authentication:2.0.0")
+    implementation("io.agora.rtc:agora-special-voice:4.1.1.24")
+    implementation("io.github.winskyan:Agora-LoggingService:1.0.9")
+}
+
+static def releaseTime() {
+    return new Date().format("yyyyMMdd_HHmmss")
+}
