@@ -147,18 +147,20 @@ object MccExManager : IMusicContentCenterExEventHandler, IMusicContentCenterExSc
         mCallback?.onStartScoreResult(songCode, state, reason)
     }
 
+
     override fun onPreLoadEvent(
         requestId: String,
         songCode: Long,
         percent: Int,
         lyricPath: String,
         pitchPath: String,
-        offsetBegin: Int,
-        offsetEnd: Int,
+        songOffsetBegin: Int,
+        songOffsetEnd: Int,
+        lyricOffset: Int,
         state: MccExState,
         reason: MccExStateReason
     ) {
-        LogUtils.d("onPreLoadEvent: requestId = $requestId, songCode = $songCode, percent = $percent, lyricPath = $lyricPath, pitchPath = $pitchPath, offsetBegin = $offsetBegin, offsetEnd = $offsetEnd, state = $state, reason = $reason")
+        LogUtils.d("onPreLoadEvent: requestId = $requestId, songCode = $songCode, percent = $percent, lyricPath = $lyricPath, pitchPath = $pitchPath, songOffsetBegin = $songOffsetBegin, songOffsetEnd = $songOffsetEnd, lyricOffset = $lyricOffset, state = $state, reason = $reason")
         if (state == MccExState.PRELOAD_STATE_COMPLETED && percent == 100) {
             mMccExService?.startScore(songCode)
         }
@@ -168,8 +170,9 @@ object MccExManager : IMusicContentCenterExEventHandler, IMusicContentCenterExSc
             percent,
             lyricPath,
             pitchPath,
-            offsetBegin,
-            offsetEnd,
+            songOffsetBegin,
+            songOffsetEnd,
+            lyricOffset,
             state,
             reason
         )
@@ -179,24 +182,40 @@ object MccExManager : IMusicContentCenterExEventHandler, IMusicContentCenterExSc
         requestId: String,
         songCode: Long,
         lyricPath: String,
-        offsetBegin: Int,
-        offsetEnd: Int,
+        songOffsetBegin: Int,
+        songOffsetEnd: Int,
+        lyricOffset: Int,
         reason: MccExStateReason
     ) {
-        LogUtils.d("onLyricResult: requestId = $requestId, songCode = $songCode, lyricPath = $lyricPath, offsetBegin = $offsetBegin, offsetEnd = $offsetEnd, reason = $reason")
-        mCallback?.onLyricResult(requestId, songCode, lyricPath, offsetBegin, offsetEnd, reason)
+        LogUtils.d("onLyricResult: requestId = $requestId, songCode = $songCode, lyricPath = $lyricPath, songOffsetBegin = $songOffsetBegin, songOffsetEnd = $songOffsetEnd, lyricOffset = $lyricOffset, reason = $reason")
+        mCallback?.onLyricResult(
+            requestId,
+            songCode,
+            lyricPath,
+            songOffsetBegin,
+            songOffsetEnd,
+            lyricOffset,
+            reason
+        )
     }
 
     override fun onPitchResult(
         requestId: String,
         songCode: Long,
         pitchPath: String,
-        offsetBegin: Int,
-        offsetEnd: Int,
+        songOffsetBegin: Int,
+        songOffsetEnd: Int,
         reason: MccExStateReason
     ) {
-        LogUtils.d("onPitchResult: requestId = $requestId, songCode = $songCode, pitchPath = $pitchPath, offsetBegin = $offsetBegin, offsetEnd = $offsetEnd, reason = $reason")
-        mCallback?.onPitchResult(requestId, songCode, pitchPath, offsetBegin, offsetEnd, reason)
+        LogUtils.d("onPitchResult: requestId = $requestId, songCode = $songCode, pitchPath = $pitchPath, songOffsetBegin = $songOffsetBegin, songOffsetEnd = $songOffsetEnd, reason = $reason")
+        mCallback?.onPitchResult(
+            requestId,
+            songCode,
+            pitchPath,
+            songOffsetBegin,
+            songOffsetEnd,
+            reason
+        )
     }
 
 
@@ -393,8 +412,9 @@ object MccExManager : IMusicContentCenterExEventHandler, IMusicContentCenterExSc
             percent: Int,
             lyricPath: String,
             pitchPath: String,
-            offsetBegin: Int,
-            offsetEnd: Int,
+            songOffsetBegin: Int,
+            songOffsetEnd: Int,
+            lyricOffset: Int,
             state: MccExState,
             reason: MccExStateReason
         ) {
@@ -405,8 +425,9 @@ object MccExManager : IMusicContentCenterExEventHandler, IMusicContentCenterExSc
             requestId: String,
             songCode: Long,
             lyricPath: String,
-            offsetBegin: Int,
-            offsetEnd: Int,
+            songOffsetBegin: Int,
+            songOffsetEnd: Int,
+            lyricOffset: Int,
             reason: MccExStateReason
         ) {
 
@@ -416,8 +437,8 @@ object MccExManager : IMusicContentCenterExEventHandler, IMusicContentCenterExSc
             requestId: String,
             songCode: Long,
             pitchPath: String,
-            offsetBegin: Int,
-            offsetEnd: Int,
+            songOffsetBegin: Int,
+            songOffsetEnd: Int,
             reason: MccExStateReason
         ) {
         }

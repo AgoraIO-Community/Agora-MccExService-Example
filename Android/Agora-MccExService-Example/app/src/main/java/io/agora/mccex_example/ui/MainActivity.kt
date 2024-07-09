@@ -25,9 +25,12 @@ import pub.devrel.easypermissions.EasyPermissions
 import kotlin.system.exitProcess
 
 class MainActivity : AppCompatActivity(), MccExManager.MccExCallback, RtcManager.RtcCallback {
-    private val TAG: String = Constants.TAG + "-MainActivity"
+    companion object {
+        private const val TAG: String = Constants.TAG + "-MainActivity"
+        private const val MY_PERMISSIONS_REQUEST_CODE = 123
+    }
+
     private lateinit var binding: ActivityMainBinding
-    private val MY_PERMISSIONS_REQUEST_CODE = 123
     private var mLoadingPopup: LoadingPopupView? = null
     private var mJoinSuccess = false
     private val mSongCacheList: MutableList<SongInfo> = mutableListOf()
