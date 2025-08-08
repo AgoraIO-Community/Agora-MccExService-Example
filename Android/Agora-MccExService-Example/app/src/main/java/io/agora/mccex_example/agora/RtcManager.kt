@@ -148,7 +148,7 @@ object RtcManager : IAudioFrameObserver {
 
     override fun onPlaybackAudioFrameBeforeMixing(
         channelId: String?,
-        userId: Int,
+        uid: Int,
         type: Int,
         samplesPerChannel: Int,
         bytesPerSample: Int,
@@ -156,21 +156,8 @@ object RtcManager : IAudioFrameObserver {
         samplesPerSec: Int,
         buffer: ByteBuffer?,
         renderTimeMs: Long,
-        avsync_type: Int
-    ): Boolean {
-        TODO("Not yet implemented")
-    }
-
-    override fun onPublishAudioFrame(
-        channelId: String?,
-        type: Int,
-        samplesPerChannel: Int,
-        bytesPerSample: Int,
-        channels: Int,
-        samplesPerSec: Int,
-        buffer: ByteBuffer?,
-        renderTimeMs: Long,
-        avsync_type: Int
+        avsync_type: Int,
+        rtpTimestamp: Int
     ): Boolean {
         TODO("Not yet implemented")
     }
@@ -196,8 +183,12 @@ object RtcManager : IAudioFrameObserver {
         TODO("Not yet implemented")
     }
 
-    override fun getPublishAudioParams(): AudioParams {
-        TODO("Not yet implemented")
+
+    fun updatePublishMediaPlayerOption(playerId: Int) {
+        val options = ChannelMediaOptions()
+        options.publishMediaPlayerId = playerId
+        options.publishMediaPlayerAudioTrack = true
+        mRtcEngine?.updateChannelMediaOptions(options)
     }
 
 

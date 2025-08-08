@@ -1,5 +1,6 @@
 package io.agora.mccex_example.agora
 
+import android.annotation.SuppressLint
 import android.content.Context
 import io.agora.mccex.IMusicContentCenterEx
 import io.agora.mccex.IMusicContentCenterExEventHandler
@@ -20,15 +21,29 @@ import io.agora.mccex_example.BuildConfig
 import io.agora.mccex_example.utils.LogUtils
 import io.agora.mediaplayer.Constants
 import io.agora.mediaplayer.IMediaPlayerObserver
+import io.agora.mediaplayer.data.CacheStatistics
+import io.agora.mediaplayer.data.PlayerPlaybackStats
 import io.agora.mediaplayer.data.PlayerUpdatedInfo
 import io.agora.mediaplayer.data.SrcInfo
 import io.agora.rtc2.IAudioFrameObserver
 import io.agora.rtc2.RtcEngine
+import java.util.concurrent.Executors
+import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.TimeUnit
 
 object MccExManager : IMusicContentCenterExEventHandler, IMusicContentCenterExScoreEventHandler {
     private var mMccExService: IMusicContentCenterEx? = null
     private var mCallback: MccExCallback? = null
     private var mMusicPlayer: IMusicPlayer? = null
+    private var mCurrentMusicPosition: Long = 0
+    private val mMediaPlayerObserverMethods = mutableListOf<String>()
+    private var mScheduledExecutorService: ScheduledExecutorService? = null
+    private var mLyricFilePath = ""
+    private var mPitchFilePath = ""
+    private var mLyricOffset = 0
+    private var mSongOffsetBegin = 0
+
+    private const val MUSIC_POSITION_UPDATE_INTERVAL = 20
 
     private var mMusicPlayMode = MusicPlayMode.MUSIC_PLAY_MODE_ORIGINAL
 
@@ -47,11 +62,37 @@ object MccExManager : IMusicContentCenterExEventHandler, IMusicContentCenterExSc
     }
 
     private val mMediaPlayerObserver: IMediaPlayerObserver = object : IMediaPlayerObserver {
+        //4.1  4.2
+//        override fun onPlayerStateChanged(
+//            state: Constants.MediaPlayerState,
+//            error: Constants.MediaPlayerError
+//        ) {
+//            LogUtils.d("MediaPlayerObserver onPlayerStateChanged: $state $error")
+//
+//            if (Constants.MediaPlayerState.PLAYER_STATE_OPEN_COMPLETED == state) {
+//                if (mStatus == Status.IDLE) {
+//                    onMusicOpenCompleted()
+//                }
+//            }
+//            if (Constants.MediaPlayerState.PLAYER_STATE_PLAYING == state) {
+//                onMusicPlaying()
+//            } else if (Constants.MediaPlayerState.PLAYER_STATE_PAUSED == state) {
+//                onMusicPause()
+//            } else if (Constants.MediaPlayerState.PLAYER_STATE_STOPPED == state) {
+//                onMusicStop()
+//            } else if (Constants.MediaPlayerState.PLAYER_STATE_PLAYBACK_ALL_LOOPS_COMPLETED == state) {
+//                onMusicCompleted()
+//            } else if (Constants.MediaPlayerState.PLAYER_STATE_FAILED == state) {
+//                onMusicOpenError(error.ordinal)
+//            }
+//        }
+
+        // 4.3  4.4.1
         override fun onPlayerStateChanged(
             state: Constants.MediaPlayerState,
-            error: Constants.MediaPlayerError
+            reaseon: Constants.MediaPlayerReason
         ) {
-            LogUtils.d("onPlayerStateChanged: $state $error")
+            LogUtils.d("MediaPlayerObserver onPlayerStateChanged: $state $reaseon")
 
             if (Constants.MediaPlayerState.PLAYER_STATE_OPEN_COMPLETED == state) {
                 if (mStatus == Status.IDLE) {
@@ -67,28 +108,68 @@ object MccExManager : IMusicContentCenterExEventHandler, IMusicContentCenterExSc
             } else if (Constants.MediaPlayerState.PLAYER_STATE_PLAYBACK_ALL_LOOPS_COMPLETED == state) {
                 onMusicCompleted()
             } else if (Constants.MediaPlayerState.PLAYER_STATE_FAILED == state) {
-                onMusicOpenError(error.ordinal)
+                onMusicOpenError(reaseon.ordinal)
             }
         }
 
+        //4.1.1.24 4.3
         override fun onPositionChanged(positionMs: Long, timestampMs: Long) {
-
+            LogUtils.d("MediaPlayerObserver onPositionChanged: $positionMs $timestampMs")
         }
+
+        //4.2.6.12
+//        override fun onPositionChanged(position_ms: Long) {
+//            LogUtils.d("MediaPlayerObserver onPositionChanged: $position_ms")
+//            if (mTestInterfaceMode) {
+//                if (mMediaPlayerObserverMethods.contains("onPositionChanged")) {
+//                    mMediaPlayerObserverMethods.remove("onPositionChanged")
+//                }
+//            }
+//        }
 
         override fun onPlayerEvent(
             eventCode: Constants.MediaPlayerEvent?,
             elapsedTime: Long,
             message: String?
         ) {
+            LogUtils.d("MediaPlayerObserver onPlayerEvent: $eventCode $elapsedTime $message")
         }
 
-        override fun onMetaData(type: Constants.MediaPlayerMetadataType, data: ByteArray) {}
-        override fun onPlayBufferUpdated(playCachedBuffer: Long) {}
-        override fun onPreloadEvent(src: String, event: Constants.MediaPlayerPreloadEvent) {}
-        override fun onAgoraCDNTokenWillExpire() {}
-        override fun onPlayerSrcInfoChanged(from: SrcInfo, to: SrcInfo) {}
-        override fun onPlayerInfoUpdated(info: PlayerUpdatedInfo) {}
-        override fun onAudioVolumeIndication(volume: Int) {}
+        override fun onMetaData(type: Constants.MediaPlayerMetadataType, data: ByteArray) {
+            LogUtils.d("MediaPlayerObserver onMetaData: $type $data")
+        }
+
+        override fun onPlayBufferUpdated(playCachedBuffer: Long) {
+            LogUtils.d("MediaPlayerObserver onPlayBufferUpdated: $playCachedBuffer")
+        }
+
+        override fun onPreloadEvent(src: String, event: Constants.MediaPlayerPreloadEvent) {
+            LogUtils.d("MediaPlayerObserver onPreloadEvent: $src $event")
+        }
+
+        override fun onAgoraCDNTokenWillExpire() {
+            LogUtils.d("MediaPlayerObserver onAgoraCDNTokenWillExpire")
+        }
+
+        override fun onPlayerSrcInfoChanged(from: SrcInfo, to: SrcInfo) {
+            LogUtils.d("MediaPlayerObserver onPlayerSrcInfoChanged: $from $to")
+        }
+
+        override fun onPlayerInfoUpdated(info: PlayerUpdatedInfo) {
+            LogUtils.d("MediaPlayerObserver onPlayerInfoUpdated: $info")
+        }
+
+        //4.3 4.4.1
+        override fun onPlayerCacheStats(stats: CacheStatistics?) {
+        }
+
+        //4.3 4.4.1
+        override fun onPlayerPlaybackStats(stats: PlayerPlaybackStats?) {
+        }
+
+        override fun onAudioVolumeIndication(volume: Int) {
+            LogUtils.d("MediaPlayerObserver onAudioVolumeIndication: $volume")
+        }
     }
 
     fun initMccExService(
@@ -116,7 +197,7 @@ object MccExManager : IMusicContentCenterExEventHandler, IMusicContentCenterExSc
         configuration.audioFrameObserver = audioFrameObserver
         configuration.enableLog = true
         configuration.enableSaveLogToFile = true
-        configuration.logFilePath = context.getExternalFilesDir(null)!!.path
+        configuration.logFilePath = context.getExternalFilesDir(null)?.path
         mMccExService?.initialize(configuration)
     }
 
@@ -125,6 +206,7 @@ object MccExManager : IMusicContentCenterExEventHandler, IMusicContentCenterExSc
     }
 
     fun destroy() {
+        reset()
         mMusicPlayer?.unRegisterPlayerObserver(mMediaPlayerObserver)
         mMusicPlayer?.let { mMccExService?.destroyMusicPlayer(it) ?: "" }
         IMusicContentCenterEx.destroy()
@@ -135,6 +217,7 @@ object MccExManager : IMusicContentCenterExEventHandler, IMusicContentCenterExSc
         LogUtils.d("onInitializeResult: state = $state, reason = $reason")
         mMusicPlayer = mMccExService?.createMusicPlayer()
         mMusicPlayer?.registerPlayerObserver(mMediaPlayerObserver)
+        mMusicPlayer?.mediaPlayerId?.let { RtcManager.updatePublishMediaPlayerOption(it) }
         mCallback?.onInitializeResult(state, reason)
     }
 
@@ -146,7 +229,6 @@ object MccExManager : IMusicContentCenterExEventHandler, IMusicContentCenterExSc
         openMusic(songCode)
         mCallback?.onStartScoreResult(songCode, state, reason)
     }
-
 
     override fun onPreLoadEvent(
         requestId: String,
@@ -161,9 +243,12 @@ object MccExManager : IMusicContentCenterExEventHandler, IMusicContentCenterExSc
         state: MccExState,
         reason: MccExStateReason
     ) {
-        LogUtils.d("onPreLoadEvent: requestId = $requestId, songCode = $songCode, percent = $percent, lyricPath = $lyricPath, pitchPath = $pitchPath, songOffsetBegin = $songOffsetBegin, songOffsetEnd = $songOffsetEnd, lyricOffset = $lyricOffset, state = $state, reason = $reason")
-        if (state == MccExState.PRELOAD_STATE_COMPLETED && percent == 100 && lyricPath.isNotEmpty() && pitchPath.isNotEmpty()) {
-            mMccExService?.startScore(songCode)
+        LogUtils.d("onPreLoadEvent: requestId = $requestId, songCode = $songCode, percent = $percent, lyricPath = $lyricPath, pitchPath = $pitchPath, musicPath:$musicPath,songOffsetBegin = $songOffsetBegin, songOffsetEnd = $songOffsetEnd, lyricOffset = $lyricOffset, state = $state, reason = $reason")
+        mLyricOffset = lyricOffset
+        mSongOffsetBegin = songOffsetBegin
+        if (state == MccExState.PRELOAD_STATE_COMPLETED && percent == 100) {
+            mSongOffsetBegin = songOffsetBegin
+            startScoreOrPlay(songCode, lyricPath, pitchPath)
         }
         mCallback?.onPreLoadEvent(
             requestId,
@@ -171,11 +256,8 @@ object MccExManager : IMusicContentCenterExEventHandler, IMusicContentCenterExSc
             percent,
             lyricPath,
             pitchPath,
-            songOffsetBegin,
-            songOffsetEnd,
-            lyricOffset,
-            state,
-            reason
+            musicPath,
+            songOffsetBegin, songOffsetEnd, lyricOffset, state, reason
         )
     }
 
@@ -189,6 +271,9 @@ object MccExManager : IMusicContentCenterExEventHandler, IMusicContentCenterExSc
         reason: MccExStateReason
     ) {
         LogUtils.d("onLyricResult: requestId = $requestId, songCode = $songCode, lyricPath = $lyricPath, songOffsetBegin = $songOffsetBegin, songOffsetEnd = $songOffsetEnd, lyricOffset = $lyricOffset, reason = $reason")
+        mLyricFilePath = lyricPath
+        mLyricOffset = lyricOffset
+        mSongOffsetBegin = songOffsetBegin
         mCallback?.onLyricResult(
             requestId,
             songCode,
@@ -198,6 +283,22 @@ object MccExManager : IMusicContentCenterExEventHandler, IMusicContentCenterExSc
             lyricOffset,
             reason
         )
+        if (mLyricFilePath.isNotEmpty() && mPitchFilePath.isNotEmpty()) {
+            mCallback?.onPreLoadEvent(
+                requestId,
+                songCode,
+                100,
+                mLyricFilePath,
+                mPitchFilePath,
+                "",
+                songOffsetBegin,
+                songOffsetEnd,
+                lyricOffset,
+                MccExState.PRELOAD_STATE_COMPLETED,
+                reason
+            )
+            startScoreOrPlay(songCode, mLyricFilePath, mPitchFilePath)
+        }
     }
 
     override fun onPitchResult(
@@ -209,6 +310,8 @@ object MccExManager : IMusicContentCenterExEventHandler, IMusicContentCenterExSc
         reason: MccExStateReason
     ) {
         LogUtils.d("onPitchResult: requestId = $requestId, songCode = $songCode, pitchPath = $pitchPath, songOffsetBegin = $songOffsetBegin, songOffsetEnd = $songOffsetEnd, reason = $reason")
+        mPitchFilePath = pitchPath
+
         mCallback?.onPitchResult(
             requestId,
             songCode,
@@ -217,6 +320,22 @@ object MccExManager : IMusicContentCenterExEventHandler, IMusicContentCenterExSc
             songOffsetEnd,
             reason
         )
+        if (mLyricFilePath.isNotEmpty() && mPitchFilePath.isNotEmpty()) {
+            mCallback?.onPreLoadEvent(
+                requestId,
+                songCode,
+                100,
+                mLyricFilePath,
+                mPitchFilePath,
+                "",
+                songOffsetBegin,
+                songOffsetEnd,
+                mLyricOffset,
+                MccExState.PRELOAD_STATE_COMPLETED,
+                reason
+            )
+            startScoreOrPlay(songCode, mLyricFilePath, mPitchFilePath)
+        }
     }
 
 
@@ -233,10 +352,13 @@ object MccExManager : IMusicContentCenterExEventHandler, IMusicContentCenterExSc
 
     private fun onMusicOpenCompleted() {
         LogUtils.d("onMusicOpenCompleted")
+        mMusicPlayer?.setPlayMode(mMusicPlayMode)
+
         mMusicPlayer?.play()
 
         mStatus = Status.Opened
         mCallback?.onPlayStateChange()
+        startDisplayLrc()
     }
 
     private fun onMusicPlaying() {
@@ -259,23 +381,27 @@ object MccExManager : IMusicContentCenterExEventHandler, IMusicContentCenterExSc
 
         reset()
         mCallback?.onPlayStateChange()
+        stopDisplayLrc()
+        mMccExService?.stopScore()
     }
 
     private fun onMusicCompleted() {
         LogUtils.d("onMusicCompleted")
         reset()
         mCallback?.onPlayStateChange()
+        stopDisplayLrc()
+        mMccExService?.stopScore()
     }
 
     private fun onMusicOpenError(error: Int) {
         LogUtils.d("onMusicOpenError: $error")
         mStatus = Status.IDLE
         mCallback?.onPlayStateChange()
+        stopDisplayLrc()
     }
 
     private fun openMusic(songCode: Long) {
         LogUtils.d("openMusic() called songCode=$songCode")
-        mMusicPlayer?.setPlayMode(mMusicPlayMode)
         mMusicPlayer?.open(songCode, 0)
     }
 
@@ -322,7 +448,10 @@ object MccExManager : IMusicContentCenterExEventHandler, IMusicContentCenterExSc
             }
             if (0 == mMccExService?.isPreloaded(songCode)) {
                 LogUtils.d("mcc is preloaded songCode=$songCode")
-                mMccExService?.startScore(songCode)
+                mLyricFilePath = ""
+                mPitchFilePath = ""
+                mMccExService?.getLyric(songCode, LyricType.KRC)
+                mMccExService?.getPitch(songCode)
             } else {
                 val requestId = mMccExService?.preload(songCode) ?: ""
                 LogUtils.d("preload requestId=$requestId")
@@ -334,6 +463,15 @@ object MccExManager : IMusicContentCenterExEventHandler, IMusicContentCenterExSc
 
     private fun reset() {
         mStatus = Status.IDLE
+
+        mScheduledExecutorService?.shutdown()
+        mScheduledExecutorService = null
+    }
+
+    fun updateMusicPosition(position: Long) {
+        if (mStatus == Status.Started) {
+            mCurrentMusicPosition = position
+        }
     }
 
     fun setPlayMode(playMode: MusicPlayMode) {
@@ -393,8 +531,61 @@ object MccExManager : IMusicContentCenterExEventHandler, IMusicContentCenterExSc
         return mMccExService?.createMusicPlayer()
     }
 
+
+    fun getMediaPlayerObserverMethods(): MutableList<String> {
+        return mMediaPlayerObserverMethods
+    }
+
     fun hasInitialized(): Boolean {
         return mMccExService != null
+    }
+
+    private fun maybeCreateNewScheduledService() {
+        if (null == mScheduledExecutorService || mScheduledExecutorService?.isShutdown == true) {
+            mScheduledExecutorService = Executors.newScheduledThreadPool(5)
+        }
+    }
+
+    @SuppressLint("DiscouragedApi")
+    private fun startDisplayLrc() {
+        maybeCreateNewScheduledService()
+        mCurrentMusicPosition = -1
+        mScheduledExecutorService?.scheduleAtFixedRate(
+            Runnable {
+                if (mStatus == Status.Started) {
+                    if (-1L == mCurrentMusicPosition || mCurrentMusicPosition % 1000 < MUSIC_POSITION_UPDATE_INTERVAL) {
+                        mCurrentMusicPosition =
+                            mMusicPlayer?.playPosition ?: 0
+                        mCurrentMusicPosition += mSongOffsetBegin.toLong()
+                    } else {
+                        mCurrentMusicPosition += MUSIC_POSITION_UPDATE_INTERVAL.toLong()
+                    }
+                    mCallback?.onMusicPositionChange(mCurrentMusicPosition)
+                }
+            },
+            0,
+            MUSIC_POSITION_UPDATE_INTERVAL.toLong(),
+            TimeUnit.MILLISECONDS
+        )
+    }
+
+    private fun stopDisplayLrc() {
+        mScheduledExecutorService?.shutdown()
+    }
+
+    fun setAudioPitch(pitch: Int) {
+        LogUtils.d("setAudioPitch: $pitch")
+        mMusicPlayer?.setAudioPitch(pitch)
+    }
+
+    private fun startScoreOrPlay(songCode: Long, lyricPath: String, pitchPath: String): Int {
+        LogUtils.d("startScoreOrPlay: songCode = $songCode lyricPath = $lyricPath, pitchPath = $pitchPath")
+        if (lyricPath.isNotEmpty() && pitchPath.isNotEmpty()) {
+            return mMccExService?.startScore(songCode) ?: -1
+        } else {
+            openMusic(songCode)
+            return 0
+        }
     }
 
 
@@ -413,6 +604,7 @@ object MccExManager : IMusicContentCenterExEventHandler, IMusicContentCenterExSc
             percent: Int,
             lyricPath: String,
             pitchPath: String,
+            musicPath: String,
             songOffsetBegin: Int,
             songOffsetEnd: Int,
             lyricOffset: Int,
@@ -448,13 +640,10 @@ object MccExManager : IMusicContentCenterExEventHandler, IMusicContentCenterExSc
 
         }
 
-        fun onPitch(songCode: Long, data: RawScoreData) {
+        fun onPitch(songCode: Long, data: RawScoreData)
+        fun onLineScore(songCode: Long, value: LineScoreData)
 
-        }
-
-        fun onLineScore(songCode: Long, value: LineScoreData) {
-
-        }
+        fun onMusicPositionChange(position: Long)
     }
 
 }

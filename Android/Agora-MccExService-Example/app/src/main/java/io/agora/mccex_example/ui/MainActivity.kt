@@ -10,6 +10,8 @@ import com.lxj.xpopup.impl.LoadingPopupView
 import io.agora.mccex.constants.MccExState
 import io.agora.mccex.constants.MccExStateReason
 import io.agora.mccex.constants.MusicPlayMode
+import io.agora.mccex.model.LineScoreData
+import io.agora.mccex.model.RawScoreData
 import io.agora.mccex_example.R
 import io.agora.mccex_example.agora.MccExManager
 import io.agora.mccex_example.agora.RtcManager
@@ -249,6 +251,18 @@ class MainActivity : AppCompatActivity(), MccExManager.MccExCallback, RtcManager
             }
             updateView()
         }
+    }
+
+    override fun onPitch(songCode: Long, data: RawScoreData) {
+
+    }
+
+    override fun onLineScore(songCode: Long, value: LineScoreData) {
+
+    }
+
+    override fun onMusicPositionChange(position: Long) {
+
     }
 
     override fun onJoinChannelSuccess(channel: String, uid: Int, elapsed: Int) {

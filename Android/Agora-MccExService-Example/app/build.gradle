@@ -113,8 +113,8 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
 
     implementation("io.agora:authentication:2.0.0")
-    implementation("io.agora.rtc:agora-special-voice:4.1.1.24")
-    implementation("io.github.winskyan:Agora-LoggingService:1.0.9")
+    implementation("io.agora.rtc:agora-special-full:4.4.1.4")
+    implementation("io.github.winskyan:Agora-LoggingService:1.0.10")
 }
 
 static def releaseTime() {
