@@ -38,10 +38,10 @@ class MainActivity : AppCompatActivity(), MccExManager.MccExCallback, RtcManager
     init {
         mSongCacheList.add(
             SongInfo(
-                "40289835",
+                "113226274",
                 "",
-                "十年",
-                "陈奕迅"
+                "Test",
+                "Test"
             )
         )
     }

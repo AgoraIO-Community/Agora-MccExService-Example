@@ -154,6 +154,7 @@ object MccExManager : IMusicContentCenterExEventHandler, IMusicContentCenterExSc
         percent: Int,
         lyricPath: String,
         pitchPath: String,
+        musicPath: String,
         songOffsetBegin: Int,
         songOffsetEnd: Int,
         lyricOffset: Int,
@@ -161,7 +162,7 @@ object MccExManager : IMusicContentCenterExEventHandler, IMusicContentCenterExSc
         reason: MccExStateReason
     ) {
         LogUtils.d("onPreLoadEvent: requestId = $requestId, songCode = $songCode, percent = $percent, lyricPath = $lyricPath, pitchPath = $pitchPath, songOffsetBegin = $songOffsetBegin, songOffsetEnd = $songOffsetEnd, lyricOffset = $lyricOffset, state = $state, reason = $reason")
-        if (state == MccExState.PRELOAD_STATE_COMPLETED && percent == 100) {
+        if (state == MccExState.PRELOAD_STATE_COMPLETED && percent == 100 && lyricPath.isNotEmpty() && pitchPath.isNotEmpty()) {
             mMccExService?.startScore(songCode)
         }
         mCallback?.onPreLoadEvent(
